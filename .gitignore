@@ -1,0 +1,8 @@
+# Exclude personal data exports & raw archives
+data/
+*.zip
+*.tgz
+*.tar.gz
+*.gz
+.DS_Store
+__pycache__/
