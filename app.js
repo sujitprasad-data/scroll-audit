@@ -88,6 +88,39 @@ function extractFilesFromTarBuffer(uint8) {
   return files;
 }
 
+// Stream-decompress .tgz/.gz with a strict byte ceiling to prevent gzip-bomb tab crashes
+function gunzipWithLimit(uint8, maxBytes) {
+  const inflator = new pako.Inflate();
+  const chunks = [];
+  let total = 0;
+
+  inflator.onData = chunk => {
+    total += chunk.byteLength;
+    if (total > maxBytes) {
+      throw new Error(`Decompressed archive exceeds ${(maxBytes / (1024 * 1024)).toFixed(0)} MB safety limit.`);
+    }
+    chunks.push(new Uint8Array(chunk));
+  };
+
+  const CHUNK_SIZE = 64 * 1024;
+  for (let offset = 0; offset < uint8.byteLength; offset += CHUNK_SIZE) {
+    const slice = uint8.subarray(offset, Math.min(offset + CHUNK_SIZE, uint8.byteLength));
+    const isLast = (offset + CHUNK_SIZE) >= uint8.byteLength;
+    inflator.push(slice, isLast);
+    if (inflator.err) {
+      throw new Error(inflator.msg || 'Gzip decompression error');
+    }
+  }
+
+  const out = new Uint8Array(total);
+  let pos = 0;
+  for (const c of chunks) {
+    out.set(c, pos);
+    pos += c.byteLength;
+  }
+  return out;
+}
+
 async function handleFiles(fileList) {
   if (!fileList || fileList.length === 0) return;
 
@@ -124,11 +157,7 @@ async function handleFiles(fileList) {
         }
       } else if (fname.endsWith('.tgz') || fname.endsWith('.tar.gz') || fname.endsWith('.gz')) {
         const buf = await file.arrayBuffer();
-        const decompressed = pako.ungzip(new Uint8Array(buf));
-        if (decompressed.byteLength > MAX_ARCHIVE_BYTES * 2) {
-          setStatus(`Decompressed archive "${file.name}" is too large for in-memory parsing. Please extract watch-history.html first.`, true);
-          return;
-        }
+        const decompressed = gunzipWithLimit(new Uint8Array(buf), MAX_ARCHIVE_BYTES * 2);
         const tarFiles = extractFilesFromTarBuffer(decompressed);
         for (const tf of tarFiles) {
           const lowPath = tf.name.toLowerCase();
