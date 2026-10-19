@@ -38,9 +38,10 @@ A **100% client-side, CSP-locked** web application and Python toolkit that analy
 
 ### 2. Instagram Watched Reels (Meta Accounts Center)
 1. Go to [Instagram Accounts Center $\rightarrow$ Download your information](https://accountscenter.instagram.com/info_and_permissions/dyi/).
-2. Select **Some of your information**.
-3. Scroll to the bottom under *Ads information* and check **`Ads and topics`** *(this is where Meta stores `videos_watched.json` and `posts_viewed.json`)*.
-4. Choose **Format: JSON**, download the `.zip` file, and drop it straight into ScrollAudit!
+2. Choose **Export of your information** $\rightarrow$ **Create export** $\rightarrow$ choose a profile $\rightarrow$ **Choose where to export ("Export to device")**.
+3. Under *Confirm your export (Customise information)*, click **Choose specific info to export** and click **Clear all**.
+4. Scroll to the very bottom under *Ads information* and check **`Ads and topics`** *(this is where Meta stores `videos_watched.json` and `posts_viewed.json`!)*.
+5. Select **Format: JSON**, download the `.zip` file, and drag it directly onto the page!
 
 ---
 
